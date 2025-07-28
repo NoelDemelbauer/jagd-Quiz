@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jagdprüfung Übungsquiz</title>
+    <style>
+        :root {
+            --primary: #2a4d69;
+            --correct: green;
+            --incorrect: red;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 1rem;
+            background: #f0f4f8;
+            color: #000;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .question-box {
+            background: white;
+            border-radius: 10px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        #question {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            width: 100%;
+            max-width: 100%;
+            margin: 0.4rem 0;
+            padding: 0.9rem;
+            font-size: 1rem;
+            background-color: #fff;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .correct {
+            color: var(--correct);
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: var(--incorrect);
+            font-weight: bold;
+        }
+
+        #scoreboard {
+            text-align: right;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #feedback {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        #wrong-answers {
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.95rem;
+        }
+
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0.8rem;
+            }
+
+            #question {
+                font-size: 1rem;
+            }
+
+            button {
+                font-size: 0.95rem;
+                padding: 0.8rem;
+            }
+
+            #feedback {
+                font-size: 1rem;
+            }
+
+            #scoreboard {
+                font-size: 0.95rem;
+            }
+
+            footer {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Jagdprüfung-Übungsquiz ~ Mark</h1>
+
+    <div id="scoreboard" onclick="toggleWrongAnswers()">Fragen richtig: 0 / 0</div>
+
+    <div class="question-box" id="quiz-box">
+        <h1>
+            <p id="question">Frage wird geladen...</p>
+        </h1>
+        <div id="answers"></div>
+        <button onclick="nextQuestion()">Nächste Frage</button>
+        <p id="feedback"></p>
+    </div>
+
+    <div id="wrong-answers"></div>
+
+    <footer>
+        @ Manuel & Noel Demelbauer<br />
+        Erstellungsdatum: Juli 2025<br />
+        Diese Seite dient als Übungsquiz für die Jagdprüfung.
+    </footer>
+
+    <script>
+        const quiz = [
+            {
+                "question": "Welche Merkmale hat die Gams im Winterkleid?",
+                "options": [
+                    "Fast schwarze Decke und markanter Aalstrich",
+                    "Rotbraunes Fell und kleine Flecken",
+                    "Weiße Decke und schwarze Beine",
+                    "Schwarze Längsbänder am Kopf"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Wie nennt man die Jungtiere eines Geleges, die der Henne folgen?",
+                "options": [
+                    "Fang",
+                    "Kessel",
+                    "Gesperr",
+                    "Geheck"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Wodurch unterscheiden sich der Bock und die Gais beim Gamswild am Gehörn?",
+                "options": [
+                    "Die Gais hat gar kein Gehörn",
+                    "Bock: stark gehakelt, Gais: schwach gehakelt",
+                    "Beide haben Schaufeln",
+                    "Das Gehörn wird jährlich abgeworfen"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist ein Stumpfgelege?",
+                "options": [
+                    "Ein beschädigtes Geweih",
+                    "Ersatzgelege mit halber Eierzahl nach Zerstörung des Erstgeleges",
+                    "Eine Bauform beim Kaninchen",
+                    "Verspätete Brunft beim Rotwild"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wie viele Sätze setzt die Häsin typischerweise pro Jahr?",
+                "options": [
+                    "1-2",
+                    "2-3",
+                    "3-4",
+                    "5-6"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Welche Hauptnahrung nimmt der Feldhase auf?",
+                "options": [
+                    "Kleine Nagetiere",
+                    "Gräser, Klee, Knospen, Triebe, Rinde",
+                    "Wurzeln und Insekten",
+                    "Aas und Obst"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wie unterscheidet man das Kanin von einem Hasen?",
+                "options": [
+                    "Kanin hat längere Löffel und schwarze Spitzen",
+                    "Kanin hat kürzere, rundliche Löffel ohne schwarze Spitzen",
+                    "Hase wohnt immer im Bau",
+                    "Hase ist immer weiß gefärbt"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wie nennt man den Schwanz des Fuchses?",
+                "options": [
+                    "Blume",
+                    "Lunte oder Standarte",
+                    "Viole",
+                    "Balg"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was versteht man unter dem Begriff 'schnüren' beim Fuchs?",
+                "options": [
+                    "Das Streifen durchs Revier auf festen Pfaden",
+                    "Das Fressen von Beute",
+                    "Das Bellen bei Gefahr",
+                    "Die Fortpflanzungszeit"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Welche Krankheit ist beim Wildkaninchen hoch ansteckend und tödlich?",
+                "options": [
+                    "Tularämie",
+                    "Brucellose",
+                    "Myxomatose",
+                    "Hasenseuche"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Wie leben Wildkaninchen?",
+                "options": [
+                    "Als Einzelgänger",
+                    "In Kolonien und Bauen mit mehreren Röhren",
+                    "Immer in Bäumen",
+                    "In strenger Einehe"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist eine Sasse?",
+                "options": [
+                    "Kessel des Kaninchens",
+                    "Lagerstätte des Hasen",
+                    "Höhle des Luchses",
+                    "Balzplatz des Birkhuhns"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist das klassische Erkennungszeichen des Steinmarders?",
+                "options": [
+                    "Gelber Kehlfleck",
+                    "Weißer, gegabelter Kehlfleck",
+                    "Dunkelbraunes Fell ohne Fleck",
+                    "Rote Schnauze"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wann ist die Ranzzeit der Marderhunde?",
+                "options": [
+                    "Jänner",
+                    "März",
+                    "Oktober",
+                    "Juli/August"
+                ],
+                "answer": 3
+            },
+            {
+                "question": "Wie werden junge Eulen nach dem Schlüpfen bezeichnet?",
+                "options": [
+                    "Nestlinge",
+                    "Küken",
+                    "Fäustlinge",
+                    "Kobel"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Welche Eulenart hat keinen Federohren?",
+                "options": [
+                    "Waldkauz",
+                    "Schleiereule",
+                    "Waldohreule",
+                    "Sperlingskauz"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Welche Aussage trifft auf den Mäusebussard zu?",
+                "options": [
+                    "Bodenjäger mit dunklen Augen, bevorzugt Mäuse als Nahrung",
+                    "Vorwiegend Fischjäger",
+                    "Typischer Waldbewohner, reine Insektennahrung",
+                    "Brütet ausschließlich in Felsen"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Wie heißen die ausgeprägten Schneefedern der Raufußhühner im Winter?",
+                "options": [
+                    "Stingl",
+                    "Schneeschuh-Stifte (Balzstifte)",
+                    "Flügelfedern",
+                    "Krumme"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wie nennt man den braunen Fleck am Hals der Ringeltaube?",
+                "options": [
+                    "Schabracke",
+                    "Brustschild",
+                    "Halsfleck",
+                    "Kropf"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Woran kann man sicher Hahn und Henne beim Rebhuhn unterscheiden?",
+                "options": [
+                    "An der Größe der Augen",
+                    "An der Form der Kralle",
+                    "An den Flügeldeckfedern: Hahn ohne Querstreifen, Henne mit Querstreifen",
+                    "Am Gefieder: Henne immer rötlich"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Was verstehen Jäger unter dem Begriff 'Kette' bei Rebhühnern?",
+                "options": [
+                    "Schwarm von Krähen",
+                    "Mehrere Rebhühner, die zusammen ruhen",
+                    "Rebhühner in einer Baumreihe",
+                    "Gelege von Fasanen"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist ein Birkfuchs?",
+                "options": [
+                    "Besonders großer Fuchs",
+                    "Typ mit heller Unterseite und weißer Blume",
+                    "Fuchs im Birkenwald",
+                    "Fuchs mit schwarzer Lunte"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist das Hauptmerkmal des Steinwild-Bocks?",
+                "options": [
+                    "Langes Geweih (Aufsatz) mit Jahresringen",
+                    "Schaufelgeweih",
+                    "Kurze, spitze Geweihenden",
+                    "Stumpfes Gehörn ohne Ringe"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Welche Aussage über das Muffelwild stimmt?",
+                "options": [
+                    "Widder haben ein gewundenes Gehörn, die Schnecke",
+                    "Mufflons leben einzeln und wandern nie",
+                    "Schafe sind immer hornlos",
+                    "Muffelwild lebt nur auf Sardinien"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Welche Wildart hat eine 'Schabracke' an den Flanken?",
+                "options": [
+                    "Rotwild",
+                    "Wildschwein",
+                    "Muffelwidder",
+                    "Rehwild"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Was ist das 'Blädern' beim Gamswild?",
+                "options": [
+                    "Warnlaut der Gais",
+                    "Brunftlaut des Bockes",
+                    "Balzruf des Kitzes",
+                    "Signalruf zur Fütterung"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wie unterscheiden sich Schwimmenten von Tauchenten?",
+                "options": [
+                    "Tauchenten haben Tauchlappen an der Hinterzehe und liegen tiefer im Wasser",
+                    "Schwimmenten können tauchen",
+                    "Tauchenten brüten am Ufer",
+                    "Schwimmenten fressen nur Fische"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Wozu dient die Bürzeldrüse bei Wasservögeln?",
+                "options": [
+                    "Sie gibt Farbe ans Gefieder ab",
+                    "Mit ihrem Fett wird das Gefieder gepflegt und wasserabweisend gemacht",
+                    "Sie steuert den Bruttrieb",
+                    "Sie produziert Balzsekret"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist der Schnepfenstrich?",
+                "options": [
+                    "Doggenkampf beim Rehwild",
+                    "Abendlicher Balzflug der Schnepfenhähne",
+                    "Ruheplatz der Schnepfe am Tag",
+                    "Streit zwischen zwei Enten"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Woran erkennt man das Blässhuhn?",
+                "options": [
+                    "Schwarzes Gefieder mit weißer Stirnblässe",
+                    "Olivbraunes Gefieder mit roter Stirnblässe",
+                    "Grüner Schnabel und langer Hals",
+                    "Weißes Gefieder und gelber Schnabel"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Wodurch unterscheiden sich Steinmarder und Baummarder sicher?",
+                "options": [
+                    "Baummarder hat einen gelben, kleinen Kehlfleck – Steinmarder einen weißen, gegabelten",
+                    "Steinmarder schläft in Baumhöhlen",
+                    "Beide sind immer völlig braun",
+                    "Steinmarder hat keine Ohrmuscheln"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Wie nennt man beim Fasan die warzigen Hautwülste über den Augen?",
+                "options": [
+                    "Balzrosen",
+                    "Stingl",
+                    "Kropf",
+                    "Bart"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Welcher Laut wird dem Haselhahn bei der Balz zugeschrieben?",
+                "options": [
+                    "Kullern und Blasen",
+                    "Krähen und Trillern",
+                    "Wauzen und Fiepen",
+                    "Orgeln und Röhren"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Wie viele Eier legt ein Rebhuhn meist pro Gelege?",
+                "options": [
+                    "2-4",
+                    "10-20",
+                    "25-30",
+                    "6-8"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Welche Aussage zu Taggreifvögeln ist korrekt?",
+                "options": [
+                    "Adler sind reine Fleischfresser",
+                    "Habicht ist ein ausgezeichneter wendiger Vogeljäger mit quergebänderter Brust",
+                    "Sperber frisst nur Würmer",
+                    "Falken jagen nie in der Luft"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wozu dient beim Rotwild das sogenannte Fege- oder Schlagverhalten?",
+                "options": [
+                    "Abstreifen des Bastes vom Geweih und Reviermarkierung",
+                    "Flucht vor Feinden",
+                    "Paarung",
+                    "Ruhemodus"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Was ist die Hauptursache für Wildschäden durch Feldhasen?",
+                "options": [
+                    "Knabbern an Baumborken und Knospen",
+                    "Graben von Bauen",
+                    "Salzlecken in Gärten",
+                    "Frass an Bodenbrütern"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Welches Erkennungsmerkmal hat der Mäusebussard?",
+                "options": [
+                    "Heller Kopf, befiederte Fänge, helle Augen",
+                    "Braune Grundfärbung, dunkle Augen, Bodenjäger",
+                    "Immer reinweißer Bauch",
+                    "Blauer Schnabel"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist typisch für die Nahrung des Damwildes?",
+                "options": [
+                    "Ausschließlich tierisch",
+                    "Gräser, Knospen, Eicheln, Bucheckern",
+                    "Reine Fischkost",
+                    "Vorwiegend Rinde und Zweige"
+                ],
+                "answer": 1
+            },
+
+            {
+                "question": "Welche Haarwildart ist ein Wiederkäuer?",
+                "options": [
+                    "Feldhase",
+                    "Rotwild",
+                    "Wildschwein",
+                    "Fuchs"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wann ist die Hauptbrunftzeit des Rotwilds?",
+                "options": [
+                    "Mai bis Juni",
+                    "Juli bis August",
+                    "September bis Oktober",
+                    "November bis Dezember"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Wie nennt man das männliche Wildschwein?",
+                "options": [
+                    "Bock",
+                    "Keiler",
+                    "Hirsch",
+                    "Widder"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was versteht man unter dem Begriff 'Setzzeit' bei Wildtieren?",
+                "options": [
+                    "Jahreszeit des Fellwechsels",
+                    "Jahreszeit, in der Jungtiere geboren werden",
+                    "Zeit der Brunft",
+                    "Periode der Geweihbildung"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist ein Frischling?",
+                "options": [
+                    "Junges Wildschwein bis zum ersten Lebensjahr",
+                    "Junger Feldhase",
+                    "Junger Rehbock",
+                    "Wallendes Kitz"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Was bezeichnet beim Rotwild der Begriff 'Feisthirsch'?",
+                "options": [
+                    "Junger Hirsch im ersten Lebensjahr",
+                    "Starker, gut genährter Hirsch vor der Brunft",
+                    "Alter Hirsch nach der Brunft",
+                    "Hirsch mit einem missgebildeten Geweih"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Welchen Zweck erfüllt die sogenannte 'Letzte Ehre' beim erlegten Wild?",
+                "options": [
+                    "Zeigen, dass das Wild noch lebt",
+                    "Traditionelle jagdliche Brauchtumsgeste mit Bruch",
+                    "Schutz vor Aasfressern",
+                    "Hygienische Reinigung des Wildbrets"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Welche Raubwildart lebt als einziges heimisches Wildhund im Rudel?",
+                "options": [
+                    "Dachs",
+                    "Wolf",
+                    "Fuchs",
+                    "Marderhund"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wie nennt man das Weibchen des Rehwilds?",
+                "options": [
+                    "Hirschkuh",
+                    "Rickel",
+                    "Gais",
+                    "Bache"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Welches Wild hat ein 'Haken-Geweih'?",
+                "options": [
+                    "Gamsbock",
+                    "Rehbock",
+                    "Steinbock",
+                    "Damhirsch"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Welche Aussage zur Wildbiologie des Feldhasen trifft zu?",
+                "options": [
+                    "Setzt Nesthocker",
+                    "Wechselt Fellfarbe im Winter",
+                    "Setzt mehrere Male im Jahr je 2-4 Junge",
+                    "Braucht immer einen Bau"
+                ],
+                "answer": 2
+            },
+            {
+                "question": "Wie werden junge Wildschweine nach ihrer Streifenzeichnung noch genannt?",
+                "options": [
+                    "Frischlinge",
+                    "Keilerchen",
+                    "Ringelschwänze",
+                    "Schwarten"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Was ist ein 'Gabler' beim Rothirsch?",
+                "options": [
+                    "Hirsch mit nur einem Geweihast auf jeder Seite",
+                    "Alter Hirsch nach der Brunft",
+                    "Junger Hirsch mit Knopfbildung",
+                    "Hirsch mit beschädigtem Geweih"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Was versteht man unter 'Fegestelle'?",
+                "options": [
+                    "Ruheplatz des Hasen",
+                    "Ort, an dem Hirsche ihren Bast vom Geweih fegen",
+                    "Winterquartier des Dächses",
+                    "Futterstelle für Winterwild"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Welche Wildart zeigt das 'Kreischen' als Warnlaut?",
+                "options": [
+                    "Feldhase",
+                    "Reh",
+                    "Wildschwein",
+                    "Steinmarder"
+                ],
+                "answer": 0
+            },
+            {
+                "question": "Was ist die Hauptnahrung der Wildenten im Herbst?",
+                "options": [
+                    "Fische und Kaulquappen",
+                    "Körner, Samen, Wasserpflanzen",
+                    "Blätter und Rinde",
+                    "Junge Feldhasen"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Welches Tier wird auch als 'Stampfer' bezeichnet?",
+                "options": [
+                    "Steinmarder",
+                    "Feldhase",
+                    "Kaninchen",
+                    "Wildkaninchen"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wie nennt man die Rinde des Wildbrets?",
+                "options": [
+                    "Haut",
+                    "Balg",
+                    "Decke",
+                    "Schwarte"
+                ],
+                "answer": 3
+            },
+            {
+                "question": "Welches Wild ist ein klassischer Einzelgänger?",
+                "options": [
+                    "Wildschwein",
+                    "Feldhase",
+                    "Reh",
+                    "Damwild"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Was ist eine 'Kitzfegen'?",
+                "options": [
+                    "Brunftruf des Kitzes",
+                    "Geweih eines Kitzbocks kurz nach dem Fegen",
+                    "Ort, an dem Kitze gewölft werden",
+                    "Herbstbalz von Kitzen"
+                ],
+                "answer": 1
+            },
+            {
+                "question": "Wozu nutzt der Feldhase die sogenannte „Sasse“?",
+                "options": [
+                    "Als Vorratslager für Nahrung",
+                    "Als Unterschlupf zum Ruhen und Verbergen",
+                    "Zur Aufzucht seiner Jungtiere im Bau",
+                    "Zur Balz und Partnersuche"
+                ],
+                "answer": 1
+            }
+
+        ];
+
+        let remainingQuestions = [...quiz];
+        let current = null;
+        let correctAnswers = 0;
+        let totalAnswers = 0;
+        let answered = false;
+        const wrongAnswersLog = [];
+
+        function loadRandomQuestion() {
+            if (remainingQuestions.length === 0) {
+                document.getElementById("quiz-box").innerHTML = `
+          <h2>Quiz beendet!</h2>
+          <p>Dein Ergebnis: ${correctAnswers} von ${totalAnswers} richtig.</p>
+          <button onclick='resetQuiz()'>Neu starten</button>`;
+                return;
+            }
+
+            const index = Math.floor(Math.random() * remainingQuestions.length);
+            current = remainingQuestions.splice(index, 1)[0];
+
+            document.getElementById("question").textContent = current.question;
+            const answersDiv = document.getElementById("answers");
+            answersDiv.innerHTML = "";
+            document.getElementById("feedback").textContent = "";
+            answered = false;
+
+            current.options.forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.textContent = option;
+                btn.onclick = () => checkAnswer(index);
+                answersDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected) {
+            if (answered) return;
+            answered = true;
+
+            const correct = current.answer;
+            const feedback = document.getElementById("feedback");
+
+            if (selected === correct) {
+                feedback.innerHTML = "<span class='correct'>Richtig!</span>";
+                correctAnswers++;
+            } else {
+                feedback.innerHTML =
+                    "<span class='incorrect'>FALSCH!</span> Richtige Antwort: " +
+                    current.options[correct];
+                wrongAnswersLog.push({
+                    question: current.question,
+                    selectedAnswer: current.options[selected],
+                    correctAnswer: current.options[correct]
+                });
+            }
+
+            totalAnswers++;
+            updateScore();
+        }
+
+        function updateScore() {
+            document.getElementById("scoreboard").textContent = `Fragen richtig: ${correctAnswers} / ${totalAnswers}`;
+        }
+
+        function nextQuestion() {
+            loadRandomQuestion();
+        }
+
+        function resetQuiz() {
+            remainingQuestions = [...quiz];
+            correctAnswers = 0;
+            totalAnswers = 0;
+            wrongAnswersLog.length = 0;
+            updateScore();
+            document.getElementById("wrong-answers").style.display = "none";
+            document.getElementById("wrong-answers").innerHTML = "";
+            loadRandomQuestion();
+        }
+
+        function toggleWrongAnswers() {
+            const container = document.getElementById("wrong-answers");
+            if (container.style.display === "none") {
+                if (wrongAnswersLog.length === 0) {
+                    container.innerHTML = "<p style='color: green;'>Keine falschen Antworten – super!</p>";
+                } else {
+                    let html = "<h3>Falsch beantwortete Fragen:</h3><ul>";
+                    wrongAnswersLog.forEach(item => {
+                        html += `<li style="margin-bottom: 10px;">
+              <strong>Frage:</strong> ${item.question}<br />
+              <span style="color:red;"><strong>Deine Antwort:</strong> ${item.selectedAnswer}</span><br />
+              <span style="color:green;"><strong>Richtig:</strong> ${item.correctAnswer}</span>
+            </li>`;
+                    });
+                    html += "</ul>";
+                    container.innerHTML = html;
+                }
+                container.style.display = "block";
+            } else {
+                container.style.display = "none";
+            }
+        }
+
+        // Starte Quiz beim Laden der Seite
+        resetQuiz();
+    </script>
+</body>
+
+</html>
